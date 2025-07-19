@@ -71,7 +71,7 @@ export default function BoardClient({ boardId }: { boardId: string }) {
       }
 
       // إرسال التحديث إلى الخادم
-       fetch(`http://localhost:5000/api/cards/${activeId}`, {
+       fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/cards/${activeId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ list_id: newLists[overListIndex].id, order: overCardIndex }),
@@ -86,7 +86,7 @@ export default function BoardClient({ boardId }: { boardId: string }) {
     if (!newListTitle.trim() || !token) return;
     const newOrder = lists.length > 0 ? Math.max(...lists.map(l => l.order)) + 1 : 0;
     try {
-      const res = await fetch(`http://localhost:5000/api/lists`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/lists`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ title: newListTitle, board_id: boardId, order: newOrder }),

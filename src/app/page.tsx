@@ -34,7 +34,7 @@ console.log('User:', user, 'Token:', token, 'Loading:', loading , 'Router:', rou
 const fetchBoards = async () => {
       setIsLoading(true);
       try {
-        const res = await fetch('http://localhost:5000/api/boards', {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/boards`, {
           headers: { 'Authorization': `Bearer ${token}` },
         });
         if (!res.ok) throw new Error('Failed to fetch boards');
