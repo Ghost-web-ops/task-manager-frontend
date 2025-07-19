@@ -22,7 +22,7 @@ export function List({ list, onAddCard }: ListProps) {
     if (!newCardTitle.trim() || !token) return;
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/cards`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/cards`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`},
         body: JSON.stringify({ title: newCardTitle, list_id: list.id, order: list.cards.length }),

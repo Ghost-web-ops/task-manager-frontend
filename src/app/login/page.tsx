@@ -19,7 +19,7 @@ export default function LoginPage() {
     setIsLoading(true);
    ;
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/login`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -108,7 +108,7 @@ export default function LoginPage() {
 
 {/* --- زر جوجل بتصميم احترافي --- */}
 <a 
-  href={`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/auth/google`}
+  href={`${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`}
   className="inline-flex items-center justify-center w-full px-4 py-2 text-sm font-medium transition-colors border border-gray-300 rounded-md shadow-sm bg-white text-gray-700 hover:bg-gray-50 dark:bg-gray-900 dark:text-gray-300 dark:border-gray-700 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
 >
   {/* أيقونة جوجل */}
