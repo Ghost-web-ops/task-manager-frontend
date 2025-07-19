@@ -6,18 +6,19 @@ import { useState, FormEvent, useEffect, useRef } from 'react';
 import { CardData, ListData } from './types';
 import { Card } from './Card';
 import { useAuth } from '@/context/AuthContext';
-import { Edit, Trash2, X } from 'lucide-react';
+import { Edit, Trash2} from 'lucide-react';
 
 interface ListProps {
   list: ListData;
   onAddCard: (listId: string, newCard: CardData) => void;
-  onUpdateCard: (cardId: string, data: { title?: string, description?: string }) => void;
+  onUpdateCard: (cardId: string, data: { title?: string }) => void;
   onDeleteCard: (cardId: string) => void;
   onUpdateList: (listId: string, newTitle: string) => void;
   onDeleteList: (listId: string) => void;
 }
 
 export function List({ list, onAddCard, onUpdateCard, onDeleteCard, onUpdateList, onDeleteList }: ListProps) {
+  // ✅ All state and helper functions MUST be INSIDE the component
   const { setNodeRef } = useDroppable({ id: list.id, data: { type: 'List' } });
   const [newCardTitle, setNewCardTitle] = useState('');
   const [isEditing, setIsEditing] = useState(false);
@@ -36,7 +37,7 @@ export function List({ list, onAddCard, onUpdateCard, onDeleteCard, onUpdateList
     e.preventDefault();
     if (!newCardTitle.trim() || !token) return;
     try {
-      const res = await fetch(`http://localhost:5000/api/cards`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/cards`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`},
         body: JSON.stringify({ title: newCardTitle, list_id: list.id, order: list.cards.length }),
@@ -69,7 +70,6 @@ export function List({ list, onAddCard, onUpdateCard, onDeleteCard, onUpdateList
               onBlur={handleSaveListTitle}
               className="w-full font-bold bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-1"
             />
-            <button onClick={() => setIsEditing(false)} className="p-1 text-red-600 hover:text-red-500"><X size={18} /></button>
           </div>
         ) : (
           <h2 className="font-bold text-gray-800 dark:text-gray-200">{list.title}</h2>

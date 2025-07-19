@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useEffect, FormEvent } from 'react';
+import { useState, useEffect, FormEvent, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { DndContext,  DragEndEvent, PointerSensor, useSensor, useSensors, DragOverlay } from '@dnd-kit/core';
-import {  arrayMove } from '@dnd-kit/sortable';
+import { DndContext, DragEndEvent, DragStartEvent, PointerSensor, useSensor, useSensors, DragOverlay } from '@dnd-kit/core';
+import { SortableContext } from '@dnd-kit/sortable';
 import { List } from './List';
 import { Card } from './Card';
 import { CardData, ListData } from './types';
 import Link from 'next/link';
+import { Save } from 'lucide-react';
 
 export default function BoardClient({ boardId }: { boardId: string }) {
   const { token } = useAuth();
@@ -16,78 +17,71 @@ export default function BoardClient({ boardId }: { boardId: string }) {
   const [loading, setLoading] = useState(true);
   const [newListTitle, setNewListTitle] = useState('');
 
+  const [boardTitle, setBoardTitle] = useState('');
+  const [editingTitle, setEditingTitle] = useState('');
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const titleInputRef = useRef<HTMLInputElement>(null);
+
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+
+  // --- Data Fetching ---
   useEffect(() => {
     if (!token) return;
-    fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/boards/${boardId}/lists`, {
+    setLoading(true);
+    const fetchBoardDetails = fetch(`${apiBaseUrl}/api/boards/${boardId}`, {
       headers: { Authorization: `Bearer ${token}` },
-    })
-    .then(res => res.ok ? res.json() : Promise.reject(res))
-    .then((data: ListData[]) => setLists(data))
-    .catch(err => console.error("Failed to fetch board data", err))
-    .finally(() => setLoading(false));
-  }, [boardId, token]);
+    }).then(res => res.json());
 
+    const fetchListsAndCards = fetch(`${apiBaseUrl}/api/boards/${boardId}/lists`, {
+      headers: { Authorization: `Bearer ${token}` },
+    }).then(res => res.json());
 
-  const handleDragStart = (event: DragEndEvent) => {
-    const card = lists.flatMap(l => l.cards).find(c => c.id === event.active.id);
-    if (card) setActiveCard(card);
-  };
+    Promise.all([fetchBoardDetails, fetchListsAndCards])
+      .then(([boardData, listsData]) => {
+        setBoardTitle(boardData.title);
+        setEditingTitle(boardData.title);
+        setLists(listsData);
+      })
+      .catch(err => console.error("Failed to fetch board data", err))
+      .finally(() => setLoading(false));
+  }, [boardId, token, apiBaseUrl]);
 
-  const handleDragEnd = (event: DragEndEvent) => {
-     setActiveCard(null);
-    const { active, over } = event;
-    if (!over) return;
+  // --- Focus Management ---
+  useEffect(() => {
+    if (isEditingTitle && titleInputRef.current) {
+      titleInputRef.current.focus();
+      titleInputRef.current.select();
+    }
+  }, [isEditingTitle]);
 
-    const activeId = active.id;
-    const overId = over.id;
-    if (activeId === overId) return;
-
-    setLists((lists) => {
-      const originalListIndex = lists.findIndex(l => l.cards.some(c => c.id === activeId));
-      const overListIndex = lists.findIndex(l => l.id === over.id || l.cards.some(c => c.id === over.id));
-
-      if (originalListIndex === -1 || overListIndex === -1) return lists;
-
-      const originalCardIndex = lists[originalListIndex].cards.findIndex(c => c.id === activeId);
-      
-      let overCardIndex;
-      if (lists[overListIndex].cards.some(c => c.id === overId)) {
-        overCardIndex = lists[overListIndex].cards.findIndex(c => c.id === overId);
-      } else {
-        overCardIndex = lists[overListIndex].cards.length;
-      }
-      
-      const newLists = [...lists];
-      
-      if (originalListIndex === overListIndex) {
-        // التحريك في نفس القائمة
-        newLists[originalListIndex].cards = arrayMove(newLists[originalListIndex].cards, originalCardIndex, overCardIndex);
-      } else {
-        // التحريك إلى قائمة مختلفة
-        const [movedCard] = newLists[originalListIndex].cards.splice(originalCardIndex, 1);
-        newLists[overListIndex].cards.splice(overCardIndex, 0, movedCard);
-      }
-
-      // إرسال التحديث إلى الخادم
-       fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/cards/${activeId}`, {
+  // --- Handlers ---
+  const handleUpdateBoardTitle = async () => {
+    if (!editingTitle.trim() || editingTitle === boardTitle) {
+      setIsEditingTitle(false);
+      return;
+    }
+    try {
+      const res = await fetch(`${apiBaseUrl}/api/boards/${boardId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        credentials: 'include',
-        body: JSON.stringify({ list_id: newLists[overListIndex].id, order: overCardIndex }),
+        body: JSON.stringify({ title: editingTitle }),
       });
-
-      return newLists;
-    });
-
-    // ... (هذه الدالة تبقى كما هي من آخر نسخة صحيحة)
+      if (!res.ok) throw new Error('Failed to update board title');
+      const updatedBoard = await res.json();
+      setBoardTitle(updatedBoard.title);
+      setIsEditingTitle(false);
+    } catch (error) {
+      console.error(error);
+      setEditingTitle(boardTitle);
+    }
   };
-  
+
   const handleCreateList = async (e: FormEvent) => {
-     e.preventDefault();
+    e.preventDefault();
     if (!newListTitle.trim() || !token) return;
     const newOrder = lists.length > 0 ? Math.max(...lists.map(l => l.order)) + 1 : 0;
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/lists`, {
+      const res = await fetch(`${apiBaseUrl}/api/lists`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ title: newListTitle, board_id: boardId, order: newOrder }),
@@ -97,19 +91,17 @@ export default function BoardClient({ boardId }: { boardId: string }) {
       setLists(prev => [...prev, { ...newList, cards: [] }]);
       setNewListTitle('');
     } catch (error) { console.error(error); }
-    // ... (هذه الدالة تبقى كما هي)
   };
-  
+
   const handleAddCard = (listId: string, newCard: CardData) => {
     setLists(prev => prev.map(list => 
       list.id === listId ? { ...list, cards: [...list.cards, newCard] } : list
     ));
   };
   
-  // --- ✅ دوال جديدة للتعديل والحذف ---
   const handleUpdateList = async (listId: string, newTitle: string) => {
     setLists(prev => prev.map(l => l.id === listId ? { ...l, title: newTitle } : l));
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/lists/${listId}`, {
+    await fetch(`${apiBaseUrl}/api/lists/${listId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`},
       body: JSON.stringify({ title: newTitle }),
@@ -119,7 +111,7 @@ export default function BoardClient({ boardId }: { boardId: string }) {
   const handleDeleteList = async (listId: string) => {
     if (!confirm('Are you sure you want to delete this list and all its cards?')) return;
     setLists(prev => prev.filter(l => l.id !== listId));
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/lists/${listId}`, {
+    await fetch(`${apiBaseUrl}/api/lists/${listId}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token}`},
     });
@@ -130,7 +122,7 @@ export default function BoardClient({ boardId }: { boardId: string }) {
       ...l,
       cards: l.cards.map(c => c.id === cardId ? { ...c, ...data } : c),
     })));
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/cards/${cardId}`, {
+    await fetch(`${apiBaseUrl}/api/cards/${cardId}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`},
       body: JSON.stringify(data),
@@ -143,20 +135,80 @@ export default function BoardClient({ boardId }: { boardId: string }) {
       ...l,
       cards: l.cards.filter(c => c.id !== cardId),
     })));
-    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/cards/${cardId}`, {
+    await fetch(`${apiBaseUrl}/api/cards/${cardId}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token}`},
     });
   };
-  
+
+  const handleDragStart = (event: DragStartEvent) => {
+    const card = lists.flatMap(l => l.cards).find(c => c.id === event.active.id);
+    if (card) setActiveCard(card);
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    setActiveCard(null);
+    const { active, over } = event;
+    if (!over) return;
+    if (active.id === over.id) return;
+
+    setLists((prev) => {
+      const activeContainerIndex = prev.findIndex(l => l.cards.some(c => c.id === active.id));
+      const overContainerIndex = prev.findIndex(l => l.id === over.id || l.cards.some(c => c.id === over.id));
+
+      if (activeContainerIndex === -1 || overContainerIndex === -1) return prev;
+
+      const newLists = JSON.parse(JSON.stringify(prev));
+      const activeCardIndex = newLists[activeContainerIndex].cards.findIndex((c: CardData) => c.id === active.id);
+      const [movedCard] = newLists[activeContainerIndex].cards.splice(activeCardIndex, 1);
+
+      const overIsListContainer = newLists[overContainerIndex].id === over.id;
+      let overCardIndex;
+      if (overIsListContainer) {
+        overCardIndex = newLists[overContainerIndex].cards.length;
+      } else {
+        overCardIndex = newLists[overContainerIndex].cards.findIndex((c: CardData) => c.id === over.id);
+      }
+      
+      newLists[overContainerIndex].cards.splice(overCardIndex, 0, movedCard);
+      
+      fetch(`${apiBaseUrl}/api/cards/${active.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ list_id: newLists[overContainerIndex].id, order: overCardIndex }),
+      });
+      
+      return newLists;
+    });
+  };
+
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <div className="text-center p-10">Loading Board...</div>;
 
   return (
     <div className="flex flex-col h-[calc(100vh-65px)] bg-gray-100 dark:bg-gray-900">
-      <div className='p-4 bg-white shadow-sm dark:bg-gray-800'>
-        <Link href="/" className="text-xl font-bold text-blue-600 dark:text-blue-400"> &larr; Back to Boards</Link>
+      <div className='flex items-center justify-between p-4 bg-white shadow-sm dark:bg-gray-800 dark:border-b dark:border-gray-700'>
+        {isEditingTitle ? (
+           <div className="flex items-center gap-2">
+            <input
+              ref={titleInputRef}
+              type="text"
+              value={editingTitle}
+              onChange={(e) => setEditingTitle(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleUpdateBoardTitle()}
+              onBlur={handleUpdateBoardTitle}
+              className="px-2 py-1 text-xl font-bold bg-transparent border-b-2 border-blue-500 focus:outline-none dark:text-white"
+            />
+            <button onClick={handleUpdateBoardTitle} className="p-1 text-green-600"><Save size={20} /></button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-3">
+            <Link href="/" className="text-blue-600 dark:text-blue-400 hover:underline"> &larr; Back to Boards</Link>
+            <h1 onClick={() => setIsEditingTitle(true)} className="text-xl font-bold cursor-pointer dark:text-gray-200">{boardTitle}</h1>
+          </div>
+        )}
       </div>
+      
       <DndContext 
         sensors={sensors} 
         onDragStart={handleDragStart}
@@ -164,15 +216,16 @@ export default function BoardClient({ boardId }: { boardId: string }) {
       >
         <div className="flex items-start h-full gap-4 p-4 overflow-x-auto">
           {lists.map(list => (
-            <List 
-              key={list.id} 
-              list={list}
-              onAddCard={handleAddCard}
-              onUpdateCard={handleUpdateCard}
-              onDeleteCard={handleDeleteCard}
-              onUpdateList={handleUpdateList}
-              onDeleteList={handleDeleteList}
-            />
+            <SortableContext key={list.id} items={list.cards.map(c => c.id)}>
+              <List 
+                list={list}
+                onAddCard={handleAddCard}
+                onUpdateCard={handleUpdateCard}
+                onDeleteCard={handleDeleteCard}
+                onUpdateList={handleUpdateList}
+                onDeleteList={handleDeleteList}
+              />
+            </SortableContext>
           ))}
           <div className="flex-shrink-0 w-72">
             <form onSubmit={handleCreateList} className="p-2 bg-gray-300 dark:bg-gray-700 rounded-lg">
@@ -181,7 +234,7 @@ export default function BoardClient({ boardId }: { boardId: string }) {
                 value={newListTitle}
                 onChange={(e) => setNewListTitle(e.target.value)}
                 placeholder="+ Add another list"
-                className="w-full px-2 py-1 bg-white border-2 border-transparent rounded-md dark:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-2 py-1 bg-white border-2 border-transparent rounded-md dark:bg-gray-600 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </form>
           </div>
