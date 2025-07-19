@@ -8,7 +8,7 @@ import { List } from './List';
 import { Card } from './Card';
 import { CardData, ListData } from './types';
 import Link from 'next/link';
-import { Save } from 'lucide-react';
+import { Save, X, Edit } from 'lucide-react';
 
 export default function BoardClient({ boardId }: { boardId: string }) {
   const { token } = useAuth();
@@ -189,26 +189,28 @@ export default function BoardClient({ boardId }: { boardId: string }) {
     <div className="flex flex-col h-[calc(100vh-65px)] bg-gray-100 dark:bg-gray-900">
       <div className='flex items-center justify-between p-4 bg-white shadow-sm dark:bg-gray-800 dark:border-b dark:border-gray-700'>
         {isEditingTitle ? (
-           <div className="flex items-center gap-2">
+           <div className="flex items-center flex-grow gap-2">
             <input
               ref={titleInputRef}
               type="text"
               value={editingTitle}
               onChange={(e) => setEditingTitle(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleUpdateBoardTitle()}
-              onBlur={handleUpdateBoardTitle}
-              className="px-2 py-1 text-xl font-bold bg-transparent border-b-2 border-blue-500 focus:outline-none dark:text-white"
+              className="flex-grow px-2 py-1 text-xl font-bold bg-transparent border-b-2 border-blue-500 focus:outline-none dark:text-white"
             />
-            <button onClick={handleUpdateBoardTitle} className="p-1 text-green-600"><Save size={20} /></button>
+            <button onClick={handleUpdateBoardTitle} className="p-1 text-green-600 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"><Save size={20} /></button>
+            <button onClick={() => setIsEditingTitle(false)} className="p-1 text-gray-500 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"><X size={20} /></button>
           </div>
         ) : (
           <div className="flex items-center gap-3">
             <Link href="/" className="text-blue-600 dark:text-blue-400 hover:underline"> &larr; Back to Boards</Link>
             <h1 onClick={() => setIsEditingTitle(true)} className="text-xl font-bold cursor-pointer dark:text-gray-200">{boardTitle}</h1>
+            <button onClick={() => setIsEditingTitle(true)} className="p-1 text-gray-500 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"><Edit size={16} /></button>
           </div>
         )}
       </div>
       
+      {/* The rest of the DndContext and components remain the same */}
       <DndContext 
         sensors={sensors} 
         onDragStart={handleDragStart}
@@ -216,17 +218,17 @@ export default function BoardClient({ boardId }: { boardId: string }) {
       >
         <div className="flex items-start h-full gap-4 p-4 overflow-x-auto">
           {lists.map(list => (
-            <SortableContext key={list.id} items={list.cards.map(c => c.id)}>
-              <List 
-                list={list}
-                onAddCard={handleAddCard}
-                onUpdateCard={handleUpdateCard}
-                onDeleteCard={handleDeleteCard}
-                onUpdateList={handleUpdateList}
-                onDeleteList={handleDeleteList}
-              />
-            </SortableContext>
+            <List 
+              key={list.id} 
+              list={list}
+              onAddCard={handleAddCard}
+              onUpdateCard={handleUpdateCard}
+              onDeleteCard={handleDeleteCard}
+              onUpdateList={handleUpdateList}
+              onDeleteList={handleDeleteList}
+            />
           ))}
+          {/* Form to add a new list */}
           <div className="flex-shrink-0 w-72">
             <form onSubmit={handleCreateList} className="p-2 bg-gray-300 dark:bg-gray-700 rounded-lg">
               <input

@@ -4,7 +4,7 @@ import { useState, useEffect, useRef,  } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { CardData } from './types';
-import { Edit, Trash2,  X } from 'lucide-react';
+import { Edit, Trash2 } from 'lucide-react';
 
 interface CardProps {
   card: CardData;
