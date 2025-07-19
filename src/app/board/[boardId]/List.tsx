@@ -6,7 +6,7 @@ import { useState, FormEvent, useEffect, useRef } from 'react';
 import { CardData, ListData } from './types';
 import { Card } from './Card';
 import { useAuth } from '@/context/AuthContext';
-import { Edit, Trash2} from 'lucide-react';
+import { Edit, Trash2, Save, X} from 'lucide-react';
 
 interface ListProps {
   list: ListData;
@@ -56,7 +56,8 @@ export function List({ list, onAddCard, onUpdateCard, onDeleteCard, onUpdateList
     setIsEditing(false);
   };
 
-  return (
+ 
+return (
     <div ref={setNodeRef} className="flex flex-col flex-shrink-0 w-72 h-fit max-h-full p-2 bg-gray-200 rounded-lg shadow dark:bg-gray-800">
       <div className="flex justify-between items-center p-2 mb-2">
         {isEditing ? (
@@ -67,27 +68,33 @@ export function List({ list, onAddCard, onUpdateCard, onDeleteCard, onUpdateList
               value={editingTitle}
               onChange={(e) => setEditingTitle(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSaveListTitle()}
-              onBlur={handleSaveListTitle}
               className="w-full font-bold bg-white dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded px-1"
             />
+            <div className="flex items-center">
+                <button onClick={handleSaveListTitle} className="p-1 text-green-600 hover:text-green-500"><Save size={18} /></button>
+                <button onClick={() => setIsEditing(false)} className="p-1 text-red-600 hover:text-red-500"><X size={18} /></button>
+            </div>
           </div>
         ) : (
           <h2 className="font-bold text-gray-800 dark:text-gray-200">{list.title}</h2>
         )}
         <div className="flex items-center gap-1">
-          <button onClick={() => setIsEditing(true)} className="p-1 text-gray-500 hover:text-blue-600"><Edit size={16} /></button>
+          {!isEditing && (
+            <button onClick={() => setIsEditing(true)} className="p-1 text-gray-500 hover:text-blue-600"><Edit size={16} /></button>
+          )}
           <button onClick={() => onDeleteList(list.id)} className="p-1 text-gray-500 hover:text-red-600"><Trash2 size={16} /></button>
         </div>
       </div>
       
+      {/* The rest of the component (SortableContext, form for adding a card) remains the same */}
       <SortableContext items={list.cards.map(c => c.id)} strategy={verticalListSortingStrategy}>
-        <div className="flex flex-col gap-2 overflow-y-auto px-1">
+        <div className="flex flex-col gap-2 px-1 overflow-y-auto">
           {list.cards.map(card => (
             <Card key={card.id} card={card} onUpdateCard={onUpdateCard} onDeleteCard={onDeleteCard} />
           ))}
         </div>
       </SortableContext>
-      <form onSubmit={handleCreateCard} className="mt-2 p-1">
+      <form onSubmit={handleCreateCard} className="p-1 mt-2">
         <input
           type="text"
           value={newCardTitle}
