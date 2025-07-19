@@ -1,14 +1,13 @@
 "use client";
 
-import { useState, useEffect,  FormEvent } from 'react';
+import { useState, useEffect, FormEvent } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors, DragOverlay } from '@dnd-kit/core';
-import { arrayMove } from '@dnd-kit/sortable';
+import { DndContext,  DragEndEvent, PointerSensor, useSensor, useSensors, DragOverlay } from '@dnd-kit/core';
+import {  arrayMove } from '@dnd-kit/sortable';
 import { List } from './List';
 import { Card } from './Card';
 import { CardData, ListData } from './types';
 import Link from 'next/link';
-
 
 export default function BoardClient({ boardId }: { boardId: string }) {
   const { token } = useAuth();
@@ -18,7 +17,6 @@ export default function BoardClient({ boardId }: { boardId: string }) {
   const [newListTitle, setNewListTitle] = useState('');
 
   useEffect(() => {
-    
     if (!token) return;
     fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/boards/${boardId}/lists`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -36,7 +34,7 @@ export default function BoardClient({ boardId }: { boardId: string }) {
   };
 
   const handleDragEnd = (event: DragEndEvent) => {
-    setActiveCard(null);
+     setActiveCard(null);
     const { active, over } = event;
     if (!over) return;
 
@@ -80,10 +78,12 @@ export default function BoardClient({ boardId }: { boardId: string }) {
 
       return newLists;
     });
+
+    // ... (هذه الدالة تبقى كما هي من آخر نسخة صحيحة)
   };
   
   const handleCreateList = async (e: FormEvent) => {
-    e.preventDefault();
+     e.preventDefault();
     if (!newListTitle.trim() || !token) return;
     const newOrder = lists.length > 0 ? Math.max(...lists.map(l => l.order)) + 1 : 0;
     try {
@@ -97,6 +97,7 @@ export default function BoardClient({ boardId }: { boardId: string }) {
       setLists(prev => [...prev, { ...newList, cards: [] }]);
       setNewListTitle('');
     } catch (error) { console.error(error); }
+    // ... (هذه الدالة تبقى كما هي)
   };
   
   const handleAddCard = (listId: string, newCard: CardData) => {
@@ -105,38 +106,88 @@ export default function BoardClient({ boardId }: { boardId: string }) {
     ));
   };
   
+  // --- ✅ دوال جديدة للتعديل والحذف ---
+  const handleUpdateList = async (listId: string, newTitle: string) => {
+    setLists(prev => prev.map(l => l.id === listId ? { ...l, title: newTitle } : l));
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/lists/${listId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`},
+      body: JSON.stringify({ title: newTitle }),
+    });
+  };
+
+  const handleDeleteList = async (listId: string) => {
+    if (!confirm('Are you sure you want to delete this list and all its cards?')) return;
+    setLists(prev => prev.filter(l => l.id !== listId));
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/lists/${listId}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}`},
+    });
+  };
+  
+  const handleUpdateCard = async (cardId: string, data: { title?: string, description?: string }) => {
+    setLists(prev => prev.map(l => ({
+      ...l,
+      cards: l.cards.map(c => c.id === cardId ? { ...c, ...data } : c),
+    })));
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/cards/${cardId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}`},
+      body: JSON.stringify(data),
+    });
+  };
+
+  const handleDeleteCard = async (cardId: string) => {
+    if (!confirm('Are you sure you want to delete this card?')) return;
+    setLists(prev => prev.map(l => ({
+      ...l,
+      cards: l.cards.filter(c => c.id !== cardId),
+    })));
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/cards/${cardId}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}`},
+    });
+  };
+  
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
   if (loading) return <div>Loading...</div>;
 
   return (
-    <div className="flex flex-col h-[calc(100vh-65px)] bg-blue-100 dark:bg-gray-900">
-      <div className='p-4 bg-white shadow-sm dark:bg-gray-800 dark:border-b dark:border-gray-700'>
+    <div className="flex flex-col h-[calc(100vh-65px)] bg-gray-100 dark:bg-gray-900">
+      <div className='p-4 bg-white shadow-sm dark:bg-gray-800'>
         <Link href="/" className="text-xl font-bold text-blue-600 dark:text-blue-400"> &larr; Back to Boards</Link>
       </div>
-      
       <DndContext 
-       sensors={sensors} 
+        sensors={sensors} 
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
         <div className="flex items-start h-full gap-4 p-4 overflow-x-auto">
           {lists.map(list => (
-            <List key={list.id} list={list} onAddCard={handleAddCard} />
+            <List 
+              key={list.id} 
+              list={list}
+              onAddCard={handleAddCard}
+              onUpdateCard={handleUpdateCard}
+              onDeleteCard={handleDeleteCard}
+              onUpdateList={handleUpdateList}
+              onDeleteList={handleDeleteList}
+            />
           ))}
           <div className="flex-shrink-0 w-72">
-            <form onSubmit={handleCreateList} className="p-2 bg-gray-300 rounded-lg dark:bg-gray-700">
+            <form onSubmit={handleCreateList} className="p-2 bg-gray-300 dark:bg-gray-700 rounded-lg">
               <input
                 type="text"
                 value={newListTitle}
                 onChange={(e) => setNewListTitle(e.target.value)}
                 placeholder="+ Add another list"
-                className="w-full px-2 py-1 bg-white border-2 border-transparent rounded-md dark:bg-gray-600 dark:text-gray-200 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-2 py-1 bg-white border-2 border-transparent rounded-md dark:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </form>
           </div>
         </div>
         <DragOverlay>
-          {activeCard ? <Card card={activeCard} isOverlay /> : null}
+          {activeCard ? <Card card={activeCard} isOverlay onUpdateCard={()=>{}} onDeleteCard={()=>{}}/> : null}
         </DragOverlay>
       </DndContext>
     </div>
