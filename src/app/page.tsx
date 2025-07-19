@@ -34,7 +34,7 @@ export default function HomePage() {
     const fetchBoards = async () => {
         setIsLoading(true);
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_UR}/api/boards`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/boards`, {
                 headers: { 'Authorization': `Bearer ${token}` },
             });
             if (!res.ok) throw new Error('Failed to fetch boards');
@@ -55,7 +55,7 @@ export default function HomePage() {
     e.preventDefault();
     if (!newBoardTitle.trim() || !token) return;
     try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_UR}/api/boards`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/boards`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             body: JSON.stringify({ title: newBoardTitle }),
@@ -73,7 +73,7 @@ export default function HomePage() {
   const handleDeleteBoard = async (boardId: string) => {
     if (!confirm('Are you sure you want to delete this board and all its contents?')) return;
     try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_UR}/api/boards/${boardId}`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/boards/${boardId}`, {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${token}` },
         });
@@ -88,7 +88,7 @@ export default function HomePage() {
   const handleUpdateBoard = async (boardId: string) => {
     if (!editingTitle.trim()) return;
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_UR}/api/boards/${boardId}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/boards/${boardId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ title: editingTitle }),
