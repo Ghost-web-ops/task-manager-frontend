@@ -58,7 +58,7 @@ const fetchBoards = async () => {
     if (!newBoardTitle.trim()) return;
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}api/boards`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/boards`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
