@@ -22,7 +22,7 @@ export default function BoardClient({ boardId }: { boardId: string }) {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const titleInputRef = useRef<HTMLInputElement>(null);
 
-  const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL;
 
   // --- Data Fetching ---
   useEffect(() => {
