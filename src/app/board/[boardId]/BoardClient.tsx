@@ -18,8 +18,9 @@ export default function BoardClient({ boardId }: { boardId: string }) {
   const [newListTitle, setNewListTitle] = useState('');
 
   useEffect(() => {
+    
     if (!token) return;
-    fetch(`http://localhost:5000/api/boards/${boardId}/lists`, {
+    fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/boards/${boardId}/lists`, {
       headers: { Authorization: `Bearer ${token}` },
     })
     .then(res => res.ok ? res.json() : Promise.reject(res))
