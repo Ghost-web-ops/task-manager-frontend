@@ -204,8 +204,7 @@ export default function BoardClient({ boardId }: { boardId: string }) {
         ) : (
           <div className="flex items-center gap-3">
             <Link href="/" className="text-blue-600 dark:text-blue-400 hover:underline"> &larr; Back to Boards</Link>
-            <h1 onClick={() => setIsEditingTitle(true)} className="text-xl font-bold cursor-pointer dark:text-gray-200">{boardTitle}</h1>
-            <button onClick={() => setIsEditingTitle(true)} className="p-1 text-gray-500 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"><Edit size={16} /></button>
+            <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-200">{boardTitle}</h1>
           </div>
         )}
       </div>
