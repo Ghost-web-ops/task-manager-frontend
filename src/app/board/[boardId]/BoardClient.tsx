@@ -7,17 +7,18 @@ import { List } from './List';
 import { Card } from './Card';
 import { CardData, ListData } from './types';
 import Link from 'next/link';
-import { Save, X } from 'lucide-react';
+import {  Save, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function BoardClient({ boardId }: { boardId: string }) {
+ const { user, token, loading: authLoading } = useAuth();
   const router = useRouter();
-  const { token } = useAuth();
+  
   const [lists, setLists] = useState<ListData[]>([]);
   const [activeCard, setActiveCard] = useState<CardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [newListTitle, setNewListTitle] = useState('');
-
+  
   const [boardTitle, setBoardTitle] = useState('');
   const [editingTitle, setEditingTitle] = useState('');
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -26,8 +27,9 @@ export default function BoardClient({ boardId }: { boardId: string }) {
   const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL;
 
   // --- Data Fetching ---
-  useEffect(() => {
+   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
       try {
         const boardDetailsPromise = fetch(`${apiBaseUrl}/api/boards/${boardId}`, {
           headers: { Authorization: `Bearer ${token}` },
@@ -49,16 +51,15 @@ export default function BoardClient({ boardId }: { boardId: string }) {
       }
     };
 
-    if (loading) {
+    if (authLoading) {
       return; // انتظر انتهاء التحقق من المصادقة
     }
-    if (!token) { // نعتمد على التوكن هنا
-      router.push('/login'); // إذا لا يوجد توكن، اذهب للدخول
+    if (!user) {
+      router.push('/login'); // إذا لا يوجد مستخدم، اذهب للدخول
     } else {
-      setLoading(true); // ابدأ التحميل
       fetchData();
     }
-  }, [boardId, token, loading, router, apiBaseUrl]);
+  }, [boardId, token, user, authLoading, router, apiBaseUrl]);
 
   // --- Focus Management ---
   useEffect(() => {

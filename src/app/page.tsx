@@ -24,7 +24,7 @@ export default function HomePage() {
   const [editingBoardId, setEditingBoardId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState('');
   const editInputRef = useRef<HTMLInputElement>(null);
-
+  const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL;
   useEffect(() => {
     if (loading) return; 
     if (!user) {
@@ -33,35 +33,30 @@ export default function HomePage() {
     }
     
     const fetchBoards = async () => {
-        
-        try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/boards`, {
-                headers: { 'Authorization': `Bearer ${token}` },
-            });
-            if (!res.ok) throw new Error('Failed to fetch boards');
-            const data = await res.json();
-            setBoards(data);
-        } catch (err) {
-            console.error(err);
-        } finally {
-            setIsLoading(false);
-        }
+      setIsLoading(true);
+      try {
+        const res = await fetch(`${apiBaseUrl}/api/boards`, { // ✅ استخدام المتغير الصحيح
+          headers: { 'Authorization': `Bearer ${token}` },
+        });
+        if (!res.ok) throw new Error('Failed to fetch boards');
+        const data = await res.json();
+        setBoards(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setIsLoading(false);
+      }
     };
+
     if (loading) {
-      // إذا كان نظام المصادقة لا يزال يتحقق، لا تفعل شيئًا
-      return;
+      return; // انتظر انتهاء التحقق من المصادقة
     }
     if (!user) {
-      // إذا انتهى التحقق ولا يوجد مستخدم، اذهب لصفحة الدخول
-      router.push('/login');
+      router.push('/login'); // إذا لا يوجد مستخدم، اذهب لصفحة الدخول
     } else {
-      // إذا انتهى التحقق وهناك مستخدم، اجلب البيانات
-      setIsLoading(true); // ابدأ التحميل الآن
-      fetchBoards();
+      fetchBoards(); // إذا كان هناك مستخدم، اجلب البيانات
     }
-    
-  }, [user, token, loading, router]);
-
+  }, [user, token, loading, router, apiBaseUrl]);
   const handleCreateBoard = async (e: FormEvent) => {
     e.preventDefault();
     if (!newBoardTitle.trim() || !token) return;
