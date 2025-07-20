@@ -3,14 +3,15 @@
 import { useState, useEffect, FormEvent, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { DndContext, DragEndEvent, DragStartEvent, PointerSensor, useSensor, useSensors, DragOverlay } from '@dnd-kit/core';
-import { SortableContext } from '@dnd-kit/sortable';
 import { List } from './List';
 import { Card } from './Card';
 import { CardData, ListData } from './types';
 import Link from 'next/link';
-import { Save, X, Edit } from 'lucide-react';
+import { Save, X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 export default function BoardClient({ boardId }: { boardId: string }) {
+  const router = useRouter();
   const { token } = useAuth();
   const [lists, setLists] = useState<ListData[]>([]);
   const [activeCard, setActiveCard] = useState<CardData | null>(null);
@@ -26,25 +27,38 @@ export default function BoardClient({ boardId }: { boardId: string }) {
 
   // --- Data Fetching ---
   useEffect(() => {
-    if (!token) return;
-    setLoading(true);
-    const fetchBoardDetails = fetch(`${apiBaseUrl}/api/boards/${boardId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    }).then(res => res.json());
+    const fetchData = async () => {
+      try {
+        const boardDetailsPromise = fetch(`${apiBaseUrl}/api/boards/${boardId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }).then(res => res.json());
 
-    const fetchListsAndCards = fetch(`${apiBaseUrl}/api/boards/${boardId}/lists`, {
-      headers: { Authorization: `Bearer ${token}` },
-    }).then(res => res.json());
+        const listsAndCardsPromise = fetch(`${apiBaseUrl}/api/boards/${boardId}/lists`, {
+          headers: { Authorization: `Bearer ${token}` },
+        }).then(res => res.json());
 
-    Promise.all([fetchBoardDetails, fetchListsAndCards])
-      .then(([boardData, listsData]) => {
+        const [boardData, listsData] = await Promise.all([boardDetailsPromise, listsAndCardsPromise]);
+        
         setBoardTitle(boardData.title);
         setEditingTitle(boardData.title);
         setLists(listsData);
-      })
-      .catch(err => console.error("Failed to fetch board data", err))
-      .finally(() => setLoading(false));
-  }, [boardId, token, apiBaseUrl]);
+      } catch (err) {
+        console.error("Failed to fetch board data", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (loading) {
+      return; // انتظر انتهاء التحقق من المصادقة
+    }
+    if (!token) { // نعتمد على التوكن هنا
+      router.push('/login'); // إذا لا يوجد توكن، اذهب للدخول
+    } else {
+      setLoading(true); // ابدأ التحميل
+      fetchData();
+    }
+  }, [boardId, token, loading, router, apiBaseUrl]);
 
   // --- Focus Management ---
   useEffect(() => {

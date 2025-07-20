@@ -33,7 +33,7 @@ export default function HomePage() {
     }
     
     const fetchBoards = async () => {
-        setIsLoading(true);
+        
         try {
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/boards`, {
                 headers: { 'Authorization': `Bearer ${token}` },
@@ -47,9 +47,19 @@ export default function HomePage() {
             setIsLoading(false);
         }
     };
-    if (token) {
+    if (loading) {
+      // إذا كان نظام المصادقة لا يزال يتحقق، لا تفعل شيئًا
+      return;
+    }
+    if (!user) {
+      // إذا انتهى التحقق ولا يوجد مستخدم، اذهب لصفحة الدخول
+      router.push('/login');
+    } else {
+      // إذا انتهى التحقق وهناك مستخدم، اجلب البيانات
+      setIsLoading(true); // ابدأ التحميل الآن
       fetchBoards();
     }
+    
   }, [user, token, loading, router]);
 
   const handleCreateBoard = async (e: FormEvent) => {
