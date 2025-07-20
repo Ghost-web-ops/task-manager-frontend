@@ -9,6 +9,10 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Task Manager",
   description: "Manage your tasks efficiently",
+  icons: {
+    icon: "/icon.png",
+    apple: "/apple-touch-icon.png",
+  },
 };
 
 export default function RootLayout({
