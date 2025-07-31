@@ -77,7 +77,7 @@ export function Card({ card, isOverlay, onUpdateCard, onDeleteCard }: CardProps)
     ) : (
       <div>
         <p className="text-sm text-gray-900 dark:text-gray-200">{card.title}</p>
-        <div className="absolute top-1 right-1 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <div className="absolute top-1 right-1 flex items-center gap-1 opacity-0 group-hover:opacity-100 md:group-hover:opacity-100 transition-opacity">
           <button onClick={() => setIsEditing(true)} className="p-1 text-gray-500 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 hover:text-blue-600">
             <Edit size={14} />
           </button>
