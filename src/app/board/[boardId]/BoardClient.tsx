@@ -241,13 +241,13 @@ export default function BoardClient({ boardId }: { boardId: string }) {
               onDeleteList={handleDeleteList}
             />
           ))}
-         <form onSubmit={handleCreateList} className="w-full p-2 bg-gray-300 dark:bg-gray-700 rounded-lg flex-shrink-0 flex items-center gap-2">
+         <form onSubmit={handleCreateList} className="w-full h-fit p-2 bg-gray-300 dark:bg-gray-700 rounded-lg flex-shrink-0 flex items-center gap-2">
   <input
     type="text"
     value={newListTitle}
     onChange={(e) => setNewListTitle(e.target.value)}
     placeholder="+ Add another list"
-    className="flex-grow h-fit px-2 py-1 bg-white border-2 border-transparent rounded-md dark:bg-gray-600 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+    className="flex-grow  px-2 py-1 bg-white border-2 border-transparent rounded-md dark:bg-gray-600 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
   />
   <button type="submit" className="p-1 text-green-600 hover:text-green-500">
     <Plus size={18} />
