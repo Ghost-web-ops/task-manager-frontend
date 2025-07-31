@@ -4,8 +4,8 @@ import { useState, useEffect, FormEvent, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Trash2, Edit } from 'lucide-react';
-import {Save, X} from 'lucide-react';
+import { Trash2, Edit, Save, X } from 'lucide-react';
+
 
 interface Board {
   id: string;
@@ -172,7 +172,7 @@ export default function HomePage() {
                 <Link href={`/board/${board.id}`} className="block w-full h-full min-h-[40px]">
                   <h2 className="text-lg font-bold text-gray-800 dark:text-gray-200">{board.title}</h2>
                 </Link>
-                <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity md:opacity-100 sm:opacity-100">
                   <button 
                     onClick={() => { setEditingBoardId(board.id); setEditingTitle(board.title); }} 
                     className="p-1 text-gray-500 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-blue-600"
