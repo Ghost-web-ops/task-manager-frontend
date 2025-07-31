@@ -6,7 +6,7 @@ import { useState, FormEvent, useEffect, useRef } from 'react';
 import { CardData, ListData } from './types';
 import { Card } from './Card';
 import { useAuth } from '@/context/AuthContext';
-import { Edit, Trash2, Save, X} from 'lucide-react';
+import { Edit, Trash2, Save, X, Plus} from 'lucide-react';
 
 interface ListProps {
   list: ListData;
@@ -100,15 +100,18 @@ return (
       ))}
     </div>
   </SortableContext>
-  <form onSubmit={handleCreateCard} className="p-1 mt-2">
-    <input
-      type="text"
-      value={newCardTitle}
-      onChange={(e) => setNewCardTitle(e.target.value)}
-      placeholder="+ Add a card"
-      className="w-full px-2 py-1 border-none rounded-md dark:bg-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-    />
-  </form>
+  <form onSubmit={handleCreateCard} className="p-1 mt-2 flex items-center gap-2">
+  <input
+    type="text"
+    value={newCardTitle}
+    onChange={(e) => setNewCardTitle(e.target.value)}
+    placeholder="+ Add a card"
+    className="flex-grow px-2 py-1 border-none rounded-md dark:bg-gray-700 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+  />
+  <button type="submit" className="p-1 text-green-600 hover:text-green-500">
+    <Plus size={18} />
+  </button>
+</form>
 </div>
   );
 }

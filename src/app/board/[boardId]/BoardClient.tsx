@@ -7,7 +7,7 @@ import { List } from './List';
 import { Card } from './Card';
 import { CardData, ListData } from './types';
 import Link from 'next/link';
-import {  Save, X } from 'lucide-react';
+import {  Save, X, Plus } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function BoardClient({ boardId }: { boardId: string }) {
@@ -227,7 +227,7 @@ export default function BoardClient({ boardId }: { boardId: string }) {
         </div>
       )}
     </div>
-    <div className="flex-1 overflow-auto">
+    <div className="flex-1 overflow-auto ">
       <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
         <div className="grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-4 p-4">
           {lists.map((list) => (
@@ -241,15 +241,18 @@ export default function BoardClient({ boardId }: { boardId: string }) {
               onDeleteList={handleDeleteList}
             />
           ))}
-          <form onSubmit={handleCreateList} className="w-full p-2 bg-gray-300 dark:bg-gray-700 rounded-lg">
-            <input
-              type="text"
-              value={newListTitle}
-              onChange={(e) => setNewListTitle(e.target.value)}
-              placeholder="+ Add another list"
-              className="w-full px-2 py-1 bg-white border-2 border-transparent rounded-md dark:bg-gray-600 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </form>
+         <form onSubmit={handleCreateList} className="w-full p-2 bg-gray-300 dark:bg-gray-700 rounded-lg flex-shrink-0 flex items-center gap-2">
+  <input
+    type="text"
+    value={newListTitle}
+    onChange={(e) => setNewListTitle(e.target.value)}
+    placeholder="+ Add another list"
+    className="flex-grow px-2 py-1 bg-white border-2 border-transparent rounded-md dark:bg-gray-600 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+  />
+  <button type="submit" className="p-1 text-green-600 hover:text-green-500">
+    <Plus size={18} />
+  </button>
+</form>
         </div>
         <DragOverlay>
           {activeCard ? <Card card={activeCard} isOverlay onUpdateCard={() => {}} onDeleteCard={() => {}} /> : null}
