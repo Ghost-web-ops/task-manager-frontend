@@ -200,67 +200,62 @@ export default function BoardClient({ boardId }: { boardId: string }) {
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
   if (loading) return <div className="text-center p-10">Loading Board...</div>;
 
-  return (
-    <div className="flex flex-col min-h-screen bg-gray-100 dark:bg-gray-900">
-      <header className="flex flex-wrap items-center justify-between p-4 bg-white shadow-sm dark:bg-gray-800 dark:border-b dark:border-gray-700">
-        {isEditingTitle ? (
-          <div className="flex w-full mb-2 sm:mb-0 sm:w-auto items-center gap-2">
-            <input
-              ref={titleInputRef}
-              type="text"
-              value={editingTitle}
-              onChange={(e) => setEditingTitle(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleUpdateBoardTitle()}
-              className="flex-grow px-2 py-1 text-xl font-bold bg-transparent border-b-2 border-blue-500 focus:outline-none dark:text-white"
-            />
-            <button onClick={handleUpdateBoardTitle} className="p-1 text-green-600 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"><Save size={20} /></button>
-            <button onClick={() => setIsEditingTitle(false)} className="p-1 text-gray-500 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"><X size={20} /></button>
-          </div>
-        ) : (
-        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
-            <Link href="/" className="text-blue-600 dark:text-blue-400 hover:underline flex-shrink-0">← Boards</Link>
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 dark:text-gray-200 truncate">{boardTitle}</h1>
-          </div>
-        )}
-      </header>
-      
-      {/* The rest of the DndContext and components remain the same */}
-      <DndContext 
-        sensors={sensors} 
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-      >
-             <main className="flex flex-wrap items-start gap-4 p-4 md:overflow-x-auto">
-          {lists.map(list => (
-            <div key={list.id} className="flex-shrink-0 w-full sm:w-64 md:w-56 lg:w-48">
-              <List
+ return (
+  <div className="flex flex-col h-[calc(100vh-65px)] bg-gray-100 dark:bg-gray-900">
+    <div className="flex items-center justify-between p-4 bg-white shadow-sm dark:bg-gray-800 dark:border-b dark:border-gray-700">
+      {isEditingTitle ? (
+        <div className="flex items-center flex-grow gap-2">
+          <input
+            ref={titleInputRef}
+            type="text"
+            value={editingTitle}
+            onChange={(e) => setEditingTitle(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleUpdateBoardTitle()}
+            className="flex-grow px-2 py-1 text-xl font-bold bg-transparent border-b-2 border-blue-500 focus:outline-none dark:text-white"
+          />
+          <button onClick={handleUpdateBoardTitle} className="p-1 text-green-600 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700">
+            <Save size={20} />
+          </button>
+          <button onClick={() => setIsEditingTitle(false)} className="p-1 text-gray-500 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700">
+            <X size={20} />
+          </button>
+        </div>
+      ) : (
+        <div className="flex items-center gap-3">
+          <Link href="/" className="text-blue-600 dark:text-blue-400 hover:underline"> &larr; Back to Boards</Link>
+          <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-200">{boardTitle}</h1>
+        </div>
+      )}
+    </div>
+    <div className="flex-1 overflow-auto">
+      <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+        <div className="grid grid-cols-[repeat(auto-fill,minmax(250px,1fr))] gap-4 p-4">
+          {lists.map((list) => (
+            <List
+              key={list.id}
               list={list}
               onAddCard={handleAddCard}
               onUpdateCard={handleUpdateCard}
               onDeleteCard={handleDeleteCard}
               onUpdateList={handleUpdateList}
               onDeleteList={handleDeleteList}
-               
             />
-            </div>
           ))}
-          {/* Form to add a new list */}
-           <div className="flex-shrink-0 w-full sm:w-64 md:w-56 lg:w-48">
-            <form onSubmit={handleCreateList} className="p-2 bg-gray-300 dark:bg-gray-700 rounded-lg">
-              <input
-                type="text"
-                value={newListTitle}
-                onChange={(e) => setNewListTitle(e.target.value)}
-                placeholder="+ Add another list"
-                 className="w-full px-2 py-1 bg-white border-none rounded-md dark:bg-gray-600 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </form>
-          </div>
-        </main>
+          <form onSubmit={handleCreateList} className="w-full p-2 bg-gray-300 dark:bg-gray-700 rounded-lg">
+            <input
+              type="text"
+              value={newListTitle}
+              onChange={(e) => setNewListTitle(e.target.value)}
+              placeholder="+ Add another list"
+              className="w-full px-2 py-1 bg-white border-2 border-transparent rounded-md dark:bg-gray-600 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </form>
+        </div>
         <DragOverlay>
-          {activeCard ? <Card card={activeCard} isOverlay onUpdateCard={()=>{}} onDeleteCard={()=>{}}/> : null}
+          {activeCard ? <Card card={activeCard} isOverlay onUpdateCard={() => {}} onDeleteCard={() => {}} /> : null}
         </DragOverlay>
       </DndContext>
     </div>
-  );
+  </div>
+);
 }
