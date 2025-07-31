@@ -201,10 +201,10 @@ export default function BoardClient({ boardId }: { boardId: string }) {
   if (loading) return <div className="text-center p-10">Loading Board...</div>;
 
   return (
-     <div className="flex flex-col min-h-screen bg-gray-100 dark:bg-gray-900">
-      <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-white shadow-sm dark:bg-gray-800 dark:border-b dark:border-gray-700">
+    <div className="flex flex-col min-h-screen bg-gray-100 dark:bg-gray-900">
+      <header className="flex flex-wrap items-center justify-between p-4 bg-white shadow-sm dark:bg-gray-800 dark:border-b dark:border-gray-700">
         {isEditingTitle ? (
-          <div className="flex items-center flex-grow gap-2 w-full">
+          <div className="flex w-full mb-2 sm:mb-0 sm:w-auto items-center gap-2">
             <input
               ref={titleInputRef}
               type="text"
@@ -217,9 +217,9 @@ export default function BoardClient({ boardId }: { boardId: string }) {
             <button onClick={() => setIsEditingTitle(false)} className="p-1 text-gray-500 rounded-md hover:bg-gray-200 dark:hover:bg-gray-700"><X size={20} /></button>
           </div>
         ) : (
-         <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full">
-            <Link href="/" className="text-blue-600 dark:text-blue-400 hover:underline shrink-0">← Back to Boards</Link>
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-gray-200 truncate flex-grow">{boardTitle}</h1>
+        <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+            <Link href="/" className="text-blue-600 dark:text-blue-400 hover:underline flex-shrink-0">← Boards</Link>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800 dark:text-gray-200 truncate">{boardTitle}</h1>
           </div>
         )}
       </header>
@@ -230,9 +230,9 @@ export default function BoardClient({ boardId }: { boardId: string }) {
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-              <main className="flex flex-col md:flex-row items-start gap-4 p-4 overflow-x-auto">
+             <main className="flex flex-wrap items-start gap-4 p-4 md:overflow-x-auto">
           {lists.map(list => (
-            <div key={list.id} className="w-full sm:w-80 md:w-72 lg:w-64 flex-shrink-0">
+            <div key={list.id} className="flex-shrink-0 w-full sm:w-64 md:w-56 lg:w-48">
               <List
               list={list}
               onAddCard={handleAddCard}
@@ -245,14 +245,14 @@ export default function BoardClient({ boardId }: { boardId: string }) {
             </div>
           ))}
           {/* Form to add a new list */}
-           <div className="w-full sm:w-80 md:w-72 lg:w-64 flex-shrink-0">
+           <div className="flex-shrink-0 w-full sm:w-64 md:w-56 lg:w-48">
             <form onSubmit={handleCreateList} className="p-2 bg-gray-300 dark:bg-gray-700 rounded-lg">
               <input
                 type="text"
                 value={newListTitle}
                 onChange={(e) => setNewListTitle(e.target.value)}
                 placeholder="+ Add another list"
-                 className="w-full px-2 py-1 bg-white border-2 border-transparent rounded-md dark:bg-gray-600 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                 className="w-full px-2 py-1 bg-white border-none rounded-md dark:bg-gray-600 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </form>
           </div>
