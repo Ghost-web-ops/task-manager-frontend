@@ -172,7 +172,7 @@ export default function HomePage() {
                 <Link href={`/board/${board.id}`} className="block w-full h-full min-h-[40px]">
                   <h2 className="text-lg font-bold text-gray-800 dark:text-gray-200">{board.title}</h2>
                 </Link>
-                <div className="absolute top-2 right-2 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity  sm:opacity-100">
+                <div className="absolute top-2 right-2 flex items-center gap-1">
                   <button 
                     onClick={() => { setEditingBoardId(board.id); setEditingTitle(board.title); }} 
                     className="p-1 text-gray-500 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 hover:text-blue-600"
